@@ -11,7 +11,7 @@ load_dotenv()
 embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
 
 llm = GoogleGenAI(
-    model="gemini-3.5-flash",
+    model="gemini-3.6-flash",
 )
 
 db = chromadb.PersistentClient(path="./chroma_db")
