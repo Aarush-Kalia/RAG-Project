@@ -3,7 +3,7 @@ from google import genai
 
 load_dotenv()
 
-with open("notes.txt", "r") as file:
+with open("data/notes.txt", "r") as file:
     content = file.read()
 
 question = "How much does the Gray Whale cost?"
