@@ -4,6 +4,7 @@ from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.google_genai import GoogleGenAI
 import chromadb
 from llama_index.vector_stores.chroma import ChromaVectorStore
+from llama_index.core import PromptTemplate
 
 
 load_dotenv()
@@ -23,9 +24,15 @@ index = VectorStoreIndex.from_vector_store(
     embed_model=embed_model,
 )
 
-query_engine = index.as_query_engine(llm=llm)
-response = query_engine.query("what are the policy objectives of the central bank?")
-print(response)
+qa_template = PromptTemplate("Answer the question using only the notes given. \n \n Notes: \n {context_str} \n Question: \n {query_str}")
 
-response = query_engine.query("How much does the Gray Whale cost")
-print(response)
+query_engine = index.as_query_engine(llm=llm, text_qa_template=qa_template)
+
+while True:
+    question = input("Ask a question(Type 'end' to exit the program): ")
+    if question == "end":
+        break
+    response = query_engine.query(question)
+    print(response)
+    for node in response.source_nodes:
+        print("from " + node.metadata["file_name"] + ", page " + node.metadata.get("page_label", "N/A") + " (score = " + str(node.score) + ")")
