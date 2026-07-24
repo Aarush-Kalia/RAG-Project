@@ -18,6 +18,14 @@ There are two scripts because ingestion and querying happen at different times a
 
 The reason for building all of this instead of just putting every document into the prompt, which is called stuffing, is cost, latency, and the context window. Stuffing means you pay input tokens for your entire document set on every single question, the model has to process all of it before answering, and past a certain size it physically will not fit in the context window and the request gets rejected. Retrieval only sends the few chunks that matter, so the tokens per question stay roughly constant no matter how large the document set gets.
 
+## Files
+
+- `ingest.py` — builds the index from the documents in `data/`
+- `chat.py` — the chat loop that answers questions
+- `hello.py`, `stuffing.py` — earlier steps kept to show how the project was built:
+  a single API call, and then putting a whole document into the prompt before
+  adding retrieval
+
 ## Setup
 
 ```bash
