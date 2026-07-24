@@ -1,12 +1,12 @@
 # Notes RAG
 
-A chatbot that answers questions about your own documents instead of giving generic answers. You upload PDFs or notes, ask a question, and it retrieves the parts of your documents that actually relate to the question and answers using only those, along with telling you which file the answer came from. This is retrieval-augmented generation, or RAG.
+A retrieval-augmented generation system that answers questions from a private document collection rather than from a model's general knowledge. It retrieves the passages most semantically relevant to a question, constrains the model to answer from only those passages, and cites the file and page each one came from.
 
 ## What it does
 
-You put your documents in a folder and run the ingestion script once. After that you can run the chat script and ask as many questions as you want, and every answer comes from your own material. If the answer isn't in your documents, it says so instead of hallucinating one.
+The system runs in two stages. Ingestion processes a folder of PDFs and text files once, converting them into a searchable vector index stored on disk. Querying happens in a chat loop, and each question retrieves only the passages relevant to it, so the cost of a question stays flat regardless of how large the collection grows. When the retrieved passages don't contain the answer, the model is instructed to say so rather than fill the gap with its own knowledge, which is the failure mode that makes an ungrounded chatbot unreliable on private material.
 
-I built this to understand how RAG actually works, since it's the same pattern running behind a lot of AI products that let you ask questions about your own files.
+I built this to understand the retrieval architecture directly, since it's the pattern underlying most production tools that answer questions over a user's own documents.
 
 ## How it works
 
@@ -17,14 +17,6 @@ There are two scripts because ingestion and querying happen at different times a
 **chat.py** handles the queries, and it runs every time you ask something. It embeds your question with the same embedding model, and it has to be the same one or the question and the chunks end up in different vector spaces and the search is meaningless. Then it does a similarity search, which is where the vector database finds the stored chunks whose vectors are nearest to the question's vector. That's the retrieval step. Then it takes the text of those retrieved chunks and inserts them into a prompt template along with the question, which is the augmentation step, and sends that prompt to Gemini for generation. It also prints the source file, the page, and the similarity score for every chunk it used.
 
 The reason for building all of this instead of just putting every document into the prompt, which is called stuffing, is cost, latency, and the context window. Stuffing means you pay input tokens for your entire document set on every single question, the model has to process all of it before answering, and past a certain size it physically will not fit in the context window and the request gets rejected. Retrieval only sends the few chunks that matter, so the tokens per question stay roughly constant no matter how large the document set gets.
-
-## Files
-
-- `ingest.py` — builds the index from the documents in `data/`
-- `chat.py` — the chat loop that answers questions
-- `hello.py`, `stuffing.py` — earlier steps kept to show how the project was built:
-  a single API call, and then putting a whole document into the prompt before
-  adding retrieval
 
 ## Setup
 
